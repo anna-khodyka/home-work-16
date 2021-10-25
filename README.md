@@ -1,21 +1,58 @@
 # home-work-16
-Flask appliction 'Bot' - personal assistant with contact book and notebook features.
+Flask application 'Bot' - personal assistant with contact book and notebook features.
 
-Application modules are tested with Pytest. Pytest cov-report could be found at bot/test/cov-html folder. Average test coverage = 91%
+Application modules are tested with Pytest. Pytest cov-report could be found at bot/test/cov-html folder. Average test coverage = 91%.
 
-Pylint used for check through the code. From initial rank = -4.5 for the whole Project, the final Pylint rank reached is 10.0. Of course, some warnings are disabled:
+    Pytests running from test folder using:
+    $ pytest --cov-config=.coveragerc --cov-report html:cov_html --cov=../
 
-  --disable=
-    R0903,
-    C0412,
-    R0902,
-    W0703,
-    R0201,
-    E0402,
-    E0602,
-    W0401,
-    R0801,
-    W0614,
-    R0801
+
+Pylint used for check through the code. From initial rank = -4.5 for the whole Project, the final Pylint rank reached at 10.0. Some warnings was disabled (fore example 'not grouping import', to-few-methodsa ).
+
+    Launched from root project folder with:
+    $ pylint bot
     
-All modules are formatted using Black.    
+    Disable list
+    --disable=
+    too-few-public-methods,
+    ungrouped-imports,
+    too-many-instance-attributes,
+    broad-except,
+    relative-beyond-top-level,
+    undefined-variable,
+    wildcard-import,
+    unused-wildcard-import
+    
+    
+All modules was formatted using Black. Seems almost fine, excepting chunks like this one:
+
+    result = self.contact_db.aggregate(
+                [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$in": [
+                                    {
+                                        "$substr": [
+                                            {
+                                                "$dateToString": {
+                                                    "format": "%d.%m.%Y",
+                                                    "date": "$birthday",
+                                                }
+                                            },
+                                            0,
+                                            5,
+                                        ]
+                                    },
+                                    [
+                                        (datetime.today() + timedelta(days=i)).strftime(
+                                            "%d.%m.%Y"
+                                        )[0:5]
+                                        for i in range(1, period + 1)
+                                    ],
+                                ]
+                            }
+                        }
+                    }
+                ]
+            )
