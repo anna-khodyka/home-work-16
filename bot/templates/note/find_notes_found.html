@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Found some notes
+{% endblock %}
+
+{% block header %}
+	All the notes i have found
+{% endblock %}
+{% block tbody_ %}
+   {%for res in result %}
+        	<tr>
+		  <td>
+		    <p><b>Note ID:</b>  {{res.note_id}}</p>
+       		    <p><b>Keywords:</b> {{res.keywords}}</p>
+	            <p>{{res.text}}</p> 
+		        <form action="/note/save_note/{{res.note_id}}"><button name="edit" width = 200>Edit note &nbsp &nbsp</button></form>
+		    <form action="/note/delete_note/{{res.note_id}}"><button name="delete" width = 200>Delete note</button></form>
+		  </td>
+		</tr>
+   {%endfor%}	      
+{% endblock%}

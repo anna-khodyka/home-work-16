@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Found notes to delete
+{% endblock %}
+
+{% block header %}
+	All the notes I have found
+{% endblock %}
+{% block tbody_ %}
+   {%for res in result %}
+              <tr>
+		<td><a href = delete_note/{{res.note_id}}>Note ID: {{res.note_id}}</a>
+       		    <p><b>Keywords:</b> {{res.keywords}}</p>
+	            <p>{{res.text}}</p> 				
+		</td>
+              </tr>
+   {%endfor%}     
+{% endblock%}
+

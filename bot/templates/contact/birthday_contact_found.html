@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+	Found contacts that has birthday 
+{% endblock %}
+
+{% block header %}
+	Contacts with Birthday at the nearest {{days}} days.
+        Click on ID to see contact details
+{% endblock %}
+
+{% block theader_ %}
+    <tr>
+           <th width = 20%>ID</th>
+           <th width = 50%>Name</th>
+           <th width = 30%>Celebrate</th>
+    </tr>
+{% endblock %}
+
+{% block tbody_ %}
+<form method = "POST">
+	{%for res in result %}
+        	<tr>
+		<td><a href =/contact/contact_detail/{{res.contact_id}}>{{res.contact_id}}</a></td>
+       		<td>{{res.name}}</td>
+		<td>{{res.celebrate}}</td>
+		</tr>
+	{%endfor%}    
+  </form>
+{% endblock%}
+
+{% block links%}
+<a href="/contact/next_birthday">Make an other search</a></p>
+{% endblock %}
