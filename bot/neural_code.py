@@ -9,16 +9,20 @@
 # pylint: disable=W0401
 # pylint: disable=E0402
 
+
+
 import sys
 import os
 import json
 import pickle
 import numpy as np
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 import nltk
 from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 if __package__ in [None, ""]:

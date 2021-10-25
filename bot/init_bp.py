@@ -11,9 +11,10 @@ Blueprint init for Flask application Bot
 import sys
 import os
 import warnings
+from flask import redirect, url_for, session, render_template, request
+
 
 warnings.filterwarnings("ignore")
-from flask import redirect, url_for, session, render_template, request
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
