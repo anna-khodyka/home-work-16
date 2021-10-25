@@ -7,7 +7,7 @@ Application modules are tested with Pytest. Pytest cov-report could be found at 
     $ pytest --cov-config=.coveragerc --cov-report html:cov_html --cov=../
 
 
-Pylint used for check through the code. From initial rank = -4.5 for the whole Project, the final Pylint rank reached at 10.0. Some warnings was disabled (fore example 'not grouping import', to-few-methodsa ).
+Pylint used for check through the code. From initial rank = -4.5 for the whole Project, the final Pylint rank reached at 10.0. Some warnings was disabled.
 
     Launched from root project folder with:
     $ pylint bot
