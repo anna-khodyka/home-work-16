@@ -123,7 +123,7 @@ class ContactbookMongo(Contactbook):
                 self.contacts.append(ContactMongo(res))
             return self.contacts
         except Exception as error:
-            raise error
+            return str(error)
 
     @LRU_cache(10)
     def get_contacts(self, key):
@@ -142,7 +142,7 @@ class ContactbookMongo(Contactbook):
                     self.contacts.append(ContactMongo(res))
                 return self.contacts
             except Exception as error:
-                raise error
+                return str(error)
         else:
             return []
 
@@ -153,11 +153,14 @@ class ContactbookMongo(Contactbook):
         :param: contact_id: str
         :return: instance of ContactMongo
         """
-        res = self.contact_db.find_one({"contact_id": int(contact_id)})
-        if res is not None:
-            contact = ContactMongo(res)
-            return contact
-        return res
+        try:
+            res = self.contact_db.find_one({"contact_id": int(contact_id)})
+            if res is not None:
+                contact = ContactMongo(res)
+                return contact
+            return res
+        except Exception as error:
+            return str(error)
 
     @LRU_cache(100)
     def get_birthday(self, period):
@@ -168,42 +171,45 @@ class ContactbookMongo(Contactbook):
         :return: list of ContactMongo
         """
         self.contacts = []
-        result = self.contact_db.aggregate(
-            [
-                {
-                    "$match": {
-                        "$expr": {
-                            "$in": [
-                                {
-                                    "$substr": [
-                                        {
-                                            "$dateToString": {
-                                                "format": "%d.%m.%Y",
-                                                "date": "$birthday",
-                                            }
-                                        },
-                                        0,
-                                        5,
-                                    ]
-                                },
-                                [
-                                    (datetime.today() + timedelta(days=i)).strftime(
-                                        "%d.%m.%Y"
-                                    )[0:5]
-                                    for i in range(1, period + 1)
-                                ],
-                            ]
+        try:
+            result = self.contact_db.aggregate(
+                [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$in": [
+                                    {
+                                        "$substr": [
+                                            {
+                                                "$dateToString": {
+                                                    "format": "%d.%m.%Y",
+                                                    "date": "$birthday",
+                                                }
+                                            },
+                                            0,
+                                            5,
+                                        ]
+                                    },
+                                    [
+                                        (datetime.today() + timedelta(days=i)).strftime(
+                                            "%d.%m.%Y"
+                                        )[0:5]
+                                        for i in range(1, period + 1)
+                                    ],
+                                ]
+                            }
                         }
                     }
-                }
-            ]
-        )
-        for res in result:
-            contact_ = ContactMongo(res)
-            contact_.celebrate = contact_.birthday[0:5]
-            self.contacts.append(contact_)
-            self.contacts = sorted(self.contacts, key=self.distance)
-        return self.contacts
+                ]
+            )
+            for res in result:
+                contact_ = ContactMongo(res)
+                contact_.celebrate = contact_.birthday[0:5]
+                self.contacts.append(contact_)
+                self.contacts = sorted(self.contacts, key=self.distance)
+            return self.contacts
+        except Exception as error:
+            return str(error)
 
     @staticmethod
     def distance(contact):
@@ -246,6 +252,12 @@ class ContactbookMongo(Contactbook):
         "get_contacts", "get_all_contacts", "get_contact_details", "get_birthday"
     )
     def update_contact(self, contact_id, contact):
+        """
+        Update contact selectd by contact_id with data from param contact
+        :param contact_id: int
+        :param contact: ContactDict
+        :return: 0 or error
+        """
         try:
             self.contact_db.replace_one(
                 {"contact_id": int(contact_id)},
@@ -275,7 +287,11 @@ class ContactbookMongo(Contactbook):
         "get_contacts", "get_all_contacts", "get_contact_details", "get_birthday"
     )
     def insert_contact(self, contact):
-
+        """
+        Insert new contact to postgres DB
+        :param contact: ContactDict
+        :return: 0 or error
+        """
         test_contact = self.contact_db.find_one(
             {"name": contact.name, "birthday": contact.birthday}
         )
@@ -317,6 +333,11 @@ class ContactbookMongo(Contactbook):
         "get_contacts", "get_all_contacts", "get_contact_details", "get_birthday"
     )
     def delete_contact(self, contact_id):
+        """
+        Delete contact from postgres DB selected by contact_id
+        :param contact_id: int
+        :return: 0 or Error
+        """
         try:
             self.contact_db.delete_one({"contact_id": int(contact_id)})
             return 0
@@ -332,12 +353,20 @@ class ContactbookPSQL(Contactbook):
     """
 
     def __init__(self, session=None):
+        """
+        Init class instance with connection to PostgreSQL
+        :param session: pgsession
+        """
         super().__init__()
         self.contacts = []
         self.session = session
 
     @LRU_cache(10)
     def get_all_contacts(self):
+        """
+        Get all the contacts from postgres DB
+        :return: list(ContactPSQL) or error
+        """
         self.contacts = []
         try:
             result = (
@@ -349,68 +378,93 @@ class ContactbookPSQL(Contactbook):
                 self.contacts.append(ContactPSQL(res))
             return self.contacts
         except Exception as error:
-            raise error
+            return str(error)
 
     @LRU_cache(10)
     def get_contacts(self, key):
+        """
+        Find contacts in postgres DB searching them by key in fields name and phone
+        :param key: str
+        :return: list(ContactsPSQL) or error
+        """
         self.contacts = []
-        if key != "":
-            result = (
-                self.session.query(
-                    Contact.contact_id,
-                    Contact.name,
-                    Contact.birthday,
-                )
-                .outerjoin(Phone_)
-                .filter(
-                    or_(
-                        func.lower(Contact.name).like(func.lower(f"%{key}%")),
-                        func.lower(Phone_.phone).like(func.lower(f"%{key}%")),
+        try:
+            if key != "":
+                result = (
+                    self.session.query(
+                        Contact.contact_id,
+                        Contact.name,
+                        Contact.birthday,
                     )
+                    .outerjoin(Phone_)
+                    .filter(
+                        or_(
+                            func.lower(Contact.name).like(func.lower(f"%{key}%")),
+                            func.lower(Phone_.phone).like(func.lower(f"%{key}%")),
+                        )
+                    )
+                    .distinct()
+                    .order_by(Contact.contact_id)
+                    .all()
                 )
-                .distinct()
-                .order_by(Contact.contact_id)
-                .all()
-            )
-            for res in result:
-                self.contacts.append(ContactPSQL(res))
-            return self.contacts
-        return []
+                for res in result:
+                    self.contacts.append(ContactPSQL(res))
+                return self.contacts
+            return []
+        except Exception as error:
+            return str(error)
 
     @LRU_cache(10)
     def get_contact_details(self, contact_id):
-        contact = self.session.query(
-            Contact.contact_id, Contact.name, Contact.birthday
-        ).filter(Contact.contact_id == contact_id)
-        phone = self.session.query(Phone_.phone).filter(Phone_.contact_id == contact_id)
-        email = self.session.query(Email_.email).filter(Email_.contact_id == contact_id)
-        address = self.session.query(Address_).filter(Address_.contact_id == contact_id)
-        return ContactDetails(contact[0], phone, email[0], address[0])
+        """
+        Select all contact data from joined tables in PostgreSQL DB. Data selected by contact_id.
+        :param contact_id: int
+        :return: ContactDetails
+        """
+        try:
+            contact = self.session.query(
+                Contact.contact_id, Contact.name, Contact.birthday
+            ).filter(Contact.contact_id == contact_id)
+            phone = self.session.query(Phone_.phone).filter(Phone_.contact_id == contact_id)
+            email = self.session.query(Email_.email).filter(Email_.contact_id == contact_id)
+            address = self.session.query(Address_).filter(Address_.contact_id == contact_id)
+            return ContactDetails(contact[0], phone, email[0], address[0])
+        except Exception as error:
+            return str(error)
+
 
     @LRU_cache(100)
     def get_birthday(self, period):
-        days = [
-            (datetime.now() + timedelta(days=i)).strftime("%m-%d")
-            for i in range(1, period + 1)
-        ]
-        res_list = []
-        result = (
-            self.session.query(Contact.contact_id, Contact.name, Contact.birthday)
-            .filter(
-                func.substr(func.to_char(Contact.birthday, "YYYY-mm-dd"), 6, 10).like(
-                    any_(days)
+        """
+        Select all contacts from PostgreSQL database with birthday date in period
+        :param period: int
+        :return: list(ContactPSQL) or error
+        """
+        try:
+            days = [
+                (datetime.now() + timedelta(days=i)).strftime("%m-%d")
+                for i in range(1, period + 1)
+            ]
+            res_list = []
+            result = (
+                self.session.query(Contact.contact_id, Contact.name, Contact.birthday)
+                .filter(
+                    func.substr(func.to_char(Contact.birthday, "YYYY-mm-dd"), 6, 10).like(
+                        any_(days)
+                    )
                 )
+                .all()
             )
-            .all()
-        )
-        for res in result:
-            res_list.append(res)
-        res_list = sorted(res_list, key=self.distance)
-        for res in res_list:
-            contact = ContactPSQL(res)
-            contact.celebrate = res.birthday.strftime("%d.%m")
-            self.contacts.append(contact)
-        return self.contacts
+            for res in result:
+                res_list.append(res)
+            res_list = sorted(res_list, key=self.distance)
+            for res in res_list:
+                contact = ContactPSQL(res)
+                contact.celebrate = res.birthday.strftime("%d.%m")
+                self.contacts.append(contact)
+            return self.contacts
+        except Exception as error:
+            return str(error)
 
     @staticmethod
     def distance(contact):
@@ -441,6 +495,12 @@ class ContactbookPSQL(Contactbook):
         "get_contacts", "get_all_contacts", "get_contact_details", "get_birthday"
     )
     def update_contact(self, contact_id, contact):
+        """
+        Update the contact in PostgreSQL DB, selected by contact_id with data from contact param
+        :param contact_id: int
+        :param contact: ContactDict
+        :return: 0 or error
+        """
         try:
             self.session.execute(
                 update(
@@ -487,6 +547,11 @@ class ContactbookPSQL(Contactbook):
         "get_contacts", "get_all_contacts", "get_contact_details", "get_birthday"
     )
     def insert_contact(self, contact):
+        """
+        Insert new contact to PostgreSQL
+        :param contact: ContactDict
+        :return: 0 or error
+        """
         try:
             contact_ = Contact(
                 name=contact.name, created_at=date.today(), birthday=contact.birthday

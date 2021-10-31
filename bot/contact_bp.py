@@ -121,6 +121,8 @@ def edit_contact():
         keywords = clean_search_str(request.form.get("Keywords"))
         for k in list(keywords.strip().split(" ")):
             result = global_var.contact_book.get_contacts(k)
+            if isinstance(result, str):
+                return html_error(result)
             results.extend(result)
             return render_template("contact/contact_found.html", result=results)
     else:
@@ -187,6 +189,8 @@ def find_contact():
         keywords = clean_search_str(request.form.get("Keywords"))
         for k in list(keywords.strip().split(" ")):
             for res in global_var.contact_book.get_contacts(k):
+                if isinstance(res, str):
+                    return html_error(res)
                 if res not in results:
                     results.append(res)
         return render_template("contact/contact_found.html", result=results)
@@ -200,6 +204,8 @@ def show_all_contacts():
     :return: rendered HTML
     """
     result = global_var.contact_book.get_all_contacts()
+    if isinstance(result, str):
+        return html_error(result)
     return render_template("contact/all_contacts.html", result=result)
 
 
@@ -211,6 +217,8 @@ def contact_detail(contact_id):
     :return: rendered HTML
     """
     contact = global_var.contact_book.get_contact_details(contact_id)
+    if isinstance(contact, str):
+        return html_error(contact)
     return render_template(
         "contact/contact_details.html",
         contact=contact,
@@ -238,6 +246,8 @@ def next_birthday():
                 "You could use numbers only, the period should be > 0 and < 365"
             )
         res = global_var.contact_book.get_birthday(period)
+        if isinstance(res, str):
+            return html_error(res)
         return render_template(
             "contact/birthday_contact_found.html",
             days=request.form.get("Period"),
@@ -260,7 +270,10 @@ def delete_contact():
             abort(400, "Wrong request data")
         keywords = clean_search_str(request.form.get("Keywords"))
         for k in list(keywords.strip().split(" ")):
-            results.extend(global_var.contact_book.get_contacts(k))
+            res = global_var.contact_book.get_contacts(k)
+            if isinstance(res, str):
+                return html_error(res)
+            results.extend(res)
         return render_template("contact/contact_to_delete.html", result=results)
     return render_template("contact/search_contact_to_delete.html")
 
