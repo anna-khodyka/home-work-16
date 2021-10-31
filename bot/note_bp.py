@@ -44,6 +44,8 @@ def find_notes():
         keywords = clean_search_str(request.form.get("Keywords"))
         for k in [kw.strip() for kw in keywords.split(",")]:
             for res in global_var.note_book.get_notes(k):
+                if isinstance(res, str):
+                    return html_error(res)
                 if res not in results:
                     results.append(res)
         return render_template("note/find_notes_found.html", result=results)
@@ -57,6 +59,8 @@ def show_all_notes():
     :return: rendered HTML
     """
     result = global_var.note_book.get_all_notes()
+    if isinstance(result, str):
+        return html_error(result)
     return render_template("note/all_notes.html", result=result)
 
 
@@ -144,6 +148,8 @@ def delete_note():
         keywords = clean_search_str(request.form.get("Keywords"))
         for k in [kw.strip() for kw in keywords.split(",")]:
             for res in global_var.note_book.get_notes(k):
+                if isinstance(res, str):
+                    return html_error(res)
                 if res not in results:
                     results.append(res)
         return render_template("note/delete_notes_found.html", result=results)

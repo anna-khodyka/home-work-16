@@ -101,7 +101,7 @@ class NotebookMongo(Notebook):
                 self.notes.append(NoteMongo(res))
             return self.notes
         except Exception as error:
-            raise error
+            return str(error)
 
     @LRU_cache(10)
     def get_notes(self, keyword):
@@ -111,15 +111,17 @@ class NotebookMongo(Notebook):
         :return: list of NoteMongo
         """
         self.notes = []
-        if keyword != "":
-            rgx = re.compile(f".*{keyword}.*", re.IGNORECASE)
-            result = self.notes_db.find(
-                {"$or": [{"keywords": rgx}, {"text": rgx}]}
-            ).sort("note_id")
-            for res in result:
-                self.notes.append(NoteMongo(res))
+        try:
+            if keyword != "":
+                rgx = re.compile(f".*{keyword}.*", re.IGNORECASE)
+                result = self.notes_db.find(
+                    {"$or": [{"keywords": rgx}, {"text": rgx}]}
+                ).sort("note_id")
+                for res in result:
+                    self.notes.append(NoteMongo(res))
             return self.notes
-        return []
+        except Exception as error:
+            return str(error)
 
     @LRU_cache(10)
     def get_note_by_id(self, note_id):
@@ -128,10 +130,13 @@ class NotebookMongo(Notebook):
         :param note_id: str/int
         :return: NoteMongo
         """
-        result = self.notes_db.find_one({"note_id": int(note_id)})
-        if result is not None:
-            return NoteMongo(result)
-        return None
+        try:
+            result = self.notes_db.find_one({"note_id": int(note_id)})
+            if result is not None:
+                return NoteMongo(result)
+            return None
+        except Exception as error:
+            return str(error)
 
     @LRU_cache_invalidate("get_notes", "get_all_notes", "get_note_by_id")
     def update_note(self, note_id, keywords, text):
