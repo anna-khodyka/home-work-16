@@ -5,10 +5,15 @@
 {% endblock %}
 
 {% block header %}
-	All the notes i have found
+	{% if result %}
+		All the notes i have found
+	{% else%}
+		There is a kind of problem
+	{% endif %}
 {% endblock %}
 {% block tbody_ %}
-   {%for res in result %}
+{% if result %}
+	{%for res in result %}
         	<tr>
 		  <td>
 		    <p><b>Note ID:</b>  {{res.note_id}}</p>
@@ -18,5 +23,13 @@
 		    <form action="/note/delete_note/{{res.note_id}}"><button name="delete" width = 200>Delete note</button></form>
 		  </td>
 		</tr>
-   {%endfor%}	      
+   {% endfor %}
+{% else %}
+        <tr>
+		  <td>
+			  <b>I'm really sorry, but this time I couldn't find any notes by your request.
+				  Try to search with another keywords.</b>
+		  </td>
+		</tr>
+{% endif %}
 {% endblock%}
