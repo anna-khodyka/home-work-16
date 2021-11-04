@@ -34,7 +34,8 @@ def init_app(config=None):
     """
     app = Flask(__name__, instance_relative_config=True)
     if not config:
-        predict_warmup = threading.Thread(target=predict_class, args=("warn up",))
+        predict_warmup = threading.Thread(
+            target=predict_class, args=("warn up",))
         predict_warmup.start()
         app.before_request_funcs[None] = [init_bp.before_request]
         app.config.from_mapping(
@@ -49,3 +50,7 @@ def init_app(config=None):
     app.register_blueprint(init_bp.init_bp)
     app.add_url_rule("/", endpoint="index")
     return app
+
+
+if __name__ == "__main__":
+    init_app()

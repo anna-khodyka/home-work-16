@@ -33,7 +33,7 @@ if __package__ == "" or __package__ is None:
     from validate import validate_contact_data, form_dict_temp
     import global_var
 else:
-    from contacts_data_classes import (
+    from .contacts_data_classes import (
         ContactbookMongo,
         ContactbookPSQL,
         ContactDetails,
@@ -41,7 +41,7 @@ else:
         ContactPSQL,
         ContactDict,
     )
-    from validate import validate_contact_data, form_dict_temp
+    from .validate import validate_contact_data, form_dict_temp
     from . import global_var
 
 contact_bp = Blueprint("contact", __name__, url_prefix="/contact")
@@ -98,7 +98,8 @@ def add_contact():
         form_dict = validate_contact_data(request, form_dict)
         valid_list = [element["valid"] for element in form_dict.values()]
         if False not in valid_list:
-            res = global_var.contact_book.insert_contact(ContactDict(form_dict))
+            res = global_var.contact_book.insert_contact(
+                ContactDict(form_dict))
             if res == 0:
                 return render_template("contact/add_contact_OK.html")
             return html_error(res)
@@ -158,7 +159,8 @@ def edit_contact_(contact_id):
         contact = global_var.contact_book.get_contact_details(contact_id)
         form_dict["Name"]["value"] = contact.name
         form_dict["Birthday"]["value"] = (
-            datetime.strptime(contact.birthday, "%d.%m.%Y").date().strftime("%Y-%m-%d")
+            datetime.strptime(contact.birthday,
+                              "%d.%m.%Y").date().strftime("%Y-%m-%d")
         )
         form_dict["Email"]["value"] = contact.email
         form_dict["Phone"]["value"] = ", ".join(list(contact.phone))

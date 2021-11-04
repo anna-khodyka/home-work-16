@@ -53,7 +53,8 @@ def register():
             error = "Password is required."
         if error is None:
             res = global_var.users_db.insert_user(
-                username, login_, generate_password_hash(password)
+                username, login_, generate_password_hash(
+                    password, salt_length=10)
             )
             if not res:
                 return redirect(url_for("login.login"))
